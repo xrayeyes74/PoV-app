@@ -1,0 +1,327 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: streetview
+    description: Street View and environment analysis
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /streetview/analyze:
+    post:
+      operationId: analyzeStreetView
+      tags: [streetview]
+      summary: Analyze a Street View location
+      description: Uses AI to analyze the environment visible in Google Street View at the given coordinates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalyzeRequest"
+      responses:
+        "200":
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /streetview/places:
+    get:
+      operationId: nearbyPlaces
+      tags: [streetview]
+      summary: List nearby points of interest
+      description: Returns nearby places of interest around the given coordinates using Google Places.
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: lng
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: radius
+          in: query
+          required: false
+          schema:
+            type: number
+            default: 150
+      responses:
+        "200":
+          description: List of nearby places
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NearbyPlacesResult"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /streetview/geocode:
+    get:
+      operationId: geocodeAddress
+      tags: [streetview]
+      summary: Geocode an address to coordinates
+      description: Converts an address string into latitude/longitude coordinates
+      parameters:
+        - name: address
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The address to geocode
+      responses:
+        "200":
+          description: Geocoding result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeocodeResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Address not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    AnalyzeRequest:
+      type: object
+      properties:
+        lat:
+          type: number
+          description: Latitude
+        lng:
+          type: number
+          description: Longitude
+        heading:
+          type: number
+          description: Camera heading in degrees (0-360)
+          default: 0
+        pitch:
+          type: number
+          description: Camera pitch in degrees (-90 to 90)
+          default: 0
+        imageUrl:
+          type: string
+          description: Optional direct image URL to analyze instead of fetching from Street View Static API
+        compareWithStreetView:
+          type: boolean
+          description: When true, also fetch the Street View image at the coordinates and compare it with imageUrl for place recognition
+          default: false
+      required:
+        - lat
+        - lng
+
+    AnalysisResult:
+      type: object
+      properties:
+        location:
+          $ref: "#/components/schemas/LocationInfo"
+        environment:
+          $ref: "#/components/schemas/EnvironmentAnalysis"
+        streetViewImageUrl:
+          type: string
+          description: URL of the Street View image that was analyzed
+        recognition:
+          $ref: "#/components/schemas/PlaceRecognition"
+      required:
+        - location
+        - environment
+        - streetViewImageUrl
+
+    PlaceRecognition:
+      type: object
+      properties:
+        recognized:
+          type: boolean
+          description: Whether the AI was able to recognize a specific place from the photo
+        placeName:
+          type: string
+          description: Name of the recognized place, if any
+        confidence:
+          type: string
+          description: Confidence level (low, medium, high)
+        matchReasoning:
+          type: string
+          description: Brief explanation of how the camera image matches a known place
+        matchedNearbyPlace:
+          type: string
+          description: Name of the nearby place from the Places API that best matches
+      required:
+        - recognized
+
+    NearbyPlacesResult:
+      type: object
+      properties:
+        places:
+          type: array
+          items:
+            $ref: "#/components/schemas/NearbyPlace"
+      required:
+        - places
+
+    NearbyPlace:
+      type: object
+      properties:
+        placeId:
+          type: string
+        name:
+          type: string
+        types:
+          type: array
+          items:
+            type: string
+        lat:
+          type: number
+        lng:
+          type: number
+        vicinity:
+          type: string
+        rating:
+          type: number
+      required:
+        - placeId
+        - name
+        - lat
+        - lng
+
+    LocationInfo:
+      type: object
+      properties:
+        lat:
+          type: number
+        lng:
+          type: number
+        formattedAddress:
+          type: string
+        neighborhood:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+      required:
+        - lat
+        - lng
+
+    EnvironmentAnalysis:
+      type: object
+      properties:
+        summary:
+          type: string
+          description: A brief overall description of the environment
+        areaType:
+          type: string
+          description: Type of area (e.g. residential, commercial, industrial, natural, historic)
+        landmarks:
+          type: array
+          items:
+            type: string
+          description: Notable landmarks, buildings, or points of interest visible
+        businesses:
+          type: array
+          items:
+            type: string
+          description: Visible shops, restaurants, or commercial activities
+        infrastructure:
+          type: array
+          items:
+            type: string
+          description: Roads, transport, signage, or other infrastructure details
+        atmosphere:
+          type: string
+          description: The general mood, time of day feel, or atmosphere of the location
+        safetyNote:
+          type: string
+          description: Any notable observations about the safety or accessibility of the area
+      required:
+        - summary
+        - areaType
+        - landmarks
+        - businesses
+        - infrastructure
+        - atmosphere
+
+    GeocodeResult:
+      type: object
+      properties:
+        lat:
+          type: number
+        lng:
+          type: number
+        formattedAddress:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+      required:
+        - lat
+        - lng
+        - formattedAddress
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+        - message
