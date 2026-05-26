@@ -1,5 +1,0 @@
-{
-  "installCommand": "cd ../.. && pnpm install --filter @workspace/street-explorer...",
-  "buildCommand": "pnpm build",
-  "outputDirectory": "dist"
-}

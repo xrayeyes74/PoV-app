@@ -1,0 +1,5 @@
+{
+  "installCommand": "pnpm install --filter @workspace/street-explorer...",
+  "buildCommand": "cd artifacts/street-explorer && pnpm build",
+  "outputDirectory": "artifacts/street-explorer/dist"
+}
