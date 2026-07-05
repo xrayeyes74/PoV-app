@@ -3,6 +3,7 @@
   "buildCommand": "cd artifacts/street-explorer && pnpm build",
   "outputDirectory": "artifacts/street-explorer/dist",
   "rewrites": [
+    { "source": "/assets/(.*)", "destination": "/assets/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
