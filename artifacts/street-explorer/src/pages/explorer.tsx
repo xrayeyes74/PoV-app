@@ -8,8 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Search, MapPin, Navigation, Compass, Building, Store, ShieldAlert, Trees, Navigation2, Zap, Info, Camera, Eye, EyeOff, X, LogOut, User, ExternalLink, MapPinOff } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Search, MapPin, Navigation, Compass, Building, Store, ShieldAlert, Trees, Navigation2, Zap, Info, Camera, Eye, EyeOff, X, LogOut, User, ExternalLink, MapPinOff, SlidersHorizontal } from "lucide-react";import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useT } from "@/i18n";
 import { LanguageSelector as LanguageSelectorInline } from "@/i18n";
@@ -45,6 +44,8 @@ export default function Explorer() {
   const lastPoiResultsRef = useRef<google.maps.places.PlaceResult[]>([]);
   const [showPois, setShowPois] = useState(true);
   const [poiFilter, setPoiFilter] = useState("");
+const [showCategoryPanel, setShowCategoryPanel] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [poiCount, setPoiCount] = useState(0);
   const [showResults, setShowResults] = useState(true);
   
@@ -260,6 +261,19 @@ export default function Explorer() {
     poiPanoMarkersRef.current = [];
   }, []);
 
+const POI_CATEGORY_GROUPS = [
+    { label: "🍽️ Cibo & Bevande", types: ["restaurant", "cafe", "bar", "food", "bakery", "night_club"] },
+    { label: "🛍️ Shopping", types: ["store", "shopping_mall", "clothing_store", "supermarket"] },
+    { label: "🏨 Alloggi", types: ["lodging", "hotel"] },
+    { label: "🏛️ Cultura", types: ["museum", "art_gallery", "tourist_attraction", "church", "place_of_worship"] },
+    { label: "🎓 Istruzione", types: ["school", "university"] },
+    { label: "⚕️ Salute", types: ["hospital", "doctor", "pharmacy"] },
+    { label: "🏦 Finanza", types: ["bank", "atm"] },
+    { label: "🚉 Trasporti", types: ["transit_station", "bus_station", "subway_station", "train_station"] },
+    { label: "🅿️ Auto", types: ["parking", "gas_station"] },
+    { label: "🌳 Verde", types: ["park"] },
+  ];
+
   const friendlyType = (types: string[] = []): string => {
     const map: Record<string, string> = {
       restaurant: t.poi.restaurant,
@@ -334,7 +348,11 @@ export default function Explorer() {
             .toLowerCase();
           return haystack.includes(filterLower);
         })
-        .slice(0, 50);
+        .filter((p) => {
+          if (selectedCategories.length === 0) return true;
+          const placeTypes = p.types ?? [];
+          return selectedCategories.some((cat) => placeTypes.includes(cat));
+        })
 
       setPoiCount(filtered.length);
 
@@ -459,9 +477,7 @@ export default function Explorer() {
         });
         poiPanoMarkersRef.current.push(panoMarker);
       });
-    },
-    [showPois, map, panorama, poiFilter, iconForType, clearPoiMarkers],
-  );
+}, [showPois, map, panorama, poiFilter, selectedCategories, iconForType, clearPoiMarkers]);
 
   const fetchPois = useCallback(
     (mapInstance: google.maps.Map, pos: google.maps.LatLng) => {
@@ -818,6 +834,74 @@ export default function Explorer() {
             <span className="text-sm font-semibold tracking-tight hidden sm:inline">
               Street Explorer
             </span>
+          </div>
+
+{/* Category panel button */}
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              className={`h-8 px-2.5 border-white/10 text-xs ${selectedCategories.length > 0 ? "bg-primary/20 text-primary border-primary/30" : "bg-card/30"}`}
+              onClick={() => setShowCategoryPanel((v) => !v)}
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5 mr-1" />
+              Categorie
+              {selectedCategories.length > 0 && (
+                <Badge className="ml-1.5 h-4 px-1 text-[10px] bg-primary text-primary-foreground">
+                  {selectedCategories.length}
+                </Badge>
+              )}
+            </Button>
+            <AnimatePresence>
+              {showCategoryPanel && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute left-0 top-10 z-50 w-72 rounded-xl border border-white/10 bg-card/95 backdrop-blur shadow-2xl p-3"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Filtra per categoria</span>
+                    {selectedCategories.length > 0 && (
+                      <button
+                        className="text-xs text-primary hover:underline"
+                        onClick={() => setSelectedCategories([])}
+                      >
+                        Rimuovi filtri
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {POI_CATEGORY_GROUPS.map((group) => {
+                      const isSelected = group.types.some((t) => selectedCategories.includes(t));
+                      return (
+                        <button
+                          key={group.label}
+                          onClick={() => {
+                            setSelectedCategories((prev) => {
+                              const hasAny = group.types.some((t) => prev.includes(t));
+                              if (hasAny) {
+                                return prev.filter((c) => !group.types.includes(c));
+                              } else {
+                                return [...prev, ...group.types];
+                              }
+                            });
+                          }}
+                          className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                            isSelected
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground"
+                          }`}
+                        >
+                          {group.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <form onSubmit={handleSearch} className="flex gap-1 flex-1 min-w-[180px]">
