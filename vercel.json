@@ -1,5 +1,8 @@
 {
-  "installCommand": "pnpm install --filter @workspace/street-explorer... --ignore-scripts",
+  "installCommand": "pnpm install --ignore-scripts --filter @workspace/street-explorer...",
   "buildCommand": "cd artifacts/street-explorer && pnpm build",
-  "outputDirectory": "artifacts/street-explorer/dist"
+  "outputDirectory": "artifacts/street-explorer/dist",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
