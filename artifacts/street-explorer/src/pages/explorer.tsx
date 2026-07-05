@@ -820,6 +820,46 @@ const POI_CATEGORY_GROUPS = [
     });
   }, [setOnCommand, speak, handleAnalyze, handleUseMyLocation]);
 
+// Nearby POI announcements for smart glasses
+  const announcedPoisRef = useRef<Map<string, number>>(new Map());
+  const POI_ANNOUNCE_RADIUS = 100; // meters
+  const POI_ANNOUNCE_COOLDOWN = 5 * 60 * 1000; // 5 minutes
+
+  useEffect(() => {
+    if (!isVoiceMode || !showPois) return;
+    const now = Date.now();
+    const nearbyPois = lastPoiResultsRef.current.filter((place) => {
+      if (!place.geometry?.location || !place.name) return false;
+      const dist = computeDistance(currentLocation, {
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+      });
+      if (dist > POI_ANNOUNCE_RADIUS) return false;
+      if (selectedCategories.length > 0 && !selectedCategories.some((cat) => (place.types ?? []).includes(cat))) return false;
+      const lastAnnounced = announcedPoisRef.current.get(place.place_id ?? place.name ?? "");
+      if (lastAnnounced && now - lastAnnounced < POI_ANNOUNCE_COOLDOWN) return false;
+      return true;
+    });
+
+    if (nearbyPois.length === 0) return;
+
+    const toAnnounce = nearbyPois.slice(0, 2);
+    const langCode = currentLangCode + "-" + currentLangCode.toUpperCase();
+
+    toAnnounce.forEach((place, i) => {
+      const key = place.place_id ?? place.name ?? "";
+      announcedPoisRef.current.set(key, now);
+      const type = friendlyType(place.types);
+      const dist = Math.round(computeDistance(currentLocation, {
+        lat: place.geometry!.location!.lat(),
+        lng: place.geometry!.location!.lng(),
+      }));
+      setTimeout(() => {
+        speak(`${type}: ${place.name}, a ${dist} metri`, langCode);
+      }, i * 3000);
+    });
+  }, [currentLocation.lat, currentLocation.lng, isVoiceMode, showPois, speak, currentLangCode, selectedCategories]);
+
   const showResultPanel = showResults && !!data;
 
   return (
