@@ -9,12 +9,12 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "src"),
-    },
-    dedupe: ["react", "react-dom"],
+ resolve: {
+  alias: {
+    "@": path.resolve(__dirname, "src"),
   },
+  dedupe: ["react", "react-dom", "@tanstack/react-query"],
+},
   build: {
     outDir: path.resolve(__dirname, "dist"),
   },
