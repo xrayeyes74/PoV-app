@@ -825,41 +825,48 @@ const POI_CATEGORY_GROUPS = [
   const POI_ANNOUNCE_RADIUS = 100; // meters
   const POI_ANNOUNCE_COOLDOWN = 5 * 60 * 1000; // 5 minutes
 
-  useEffect(() => {
+useEffect(() => {
     if (!isVoiceMode || !showPois) return;
-    const now = Date.now();
-    const nearbyPois = lastPoiResultsRef.current.filter((place) => {
-      if (!place.geometry?.location || !place.name) return false;
-      const dist = computeDistance(currentLocation, {
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng(),
+    
+    const checkNearbyPois = () => {
+      const now = Date.now();
+      const nearbyPois = lastPoiResultsRef.current.filter((place) => {
+        if (!place.geometry?.location || !place.name) return false;
+        const dist = computeDistance(currentLocation, {
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+        });
+        if (dist > POI_ANNOUNCE_RADIUS) return false;
+        if (selectedCategories.length > 0 && !selectedCategories.some((cat) => (place.types ?? []).includes(cat))) return false;
+        const lastAnnounced = announcedPoisRef.current.get(place.place_id ?? place.name ?? "");
+        if (lastAnnounced && now - lastAnnounced < POI_ANNOUNCE_COOLDOWN) return false;
+        return true;
       });
-      if (dist > POI_ANNOUNCE_RADIUS) return false;
-      if (selectedCategories.length > 0 && !selectedCategories.some((cat) => (place.types ?? []).includes(cat))) return false;
-      const lastAnnounced = announcedPoisRef.current.get(place.place_id ?? place.name ?? "");
-      if (lastAnnounced && now - lastAnnounced < POI_ANNOUNCE_COOLDOWN) return false;
-      return true;
-    });
 
-    if (nearbyPois.length === 0) return;
+      if (nearbyPois.length === 0) return;
 
-    const toAnnounce = nearbyPois.slice(0, 2);
-    const langCode = currentLangCode + "-" + currentLangCode.toUpperCase();
+      const toAnnounce = nearbyPois.slice(0, 2);
+      const langCode = currentLangCode + "-" + currentLangCode.toUpperCase();
 
-    toAnnounce.forEach((place, i) => {
-      const key = place.place_id ?? place.name ?? "";
-      announcedPoisRef.current.set(key, now);
-      const type = friendlyType(place.types);
-      const dist = Math.round(computeDistance(currentLocation, {
-        lat: place.geometry!.location!.lat(),
-        lng: place.geometry!.location!.lng(),
-      }));
-      setTimeout(() => {
-        speak(`${type}: ${place.name}, a ${dist} metri`, langCode);
-      }, i * 3000);
-    });
+      toAnnounce.forEach((place, i) => {
+        const key = place.place_id ?? place.name ?? "";
+        announcedPoisRef.current.set(key, now);
+        const type = friendlyType(place.types);
+        const dist = Math.round(computeDistance(currentLocation, {
+          lat: place.geometry!.location!.lat(),
+          lng: place.geometry!.location!.lng(),
+        }));
+        setTimeout(() => {
+          speak(`${type}: ${place.name}, a ${dist} metri`, langCode);
+        }, i * 3000);
+      });
+    };
+
+    // Controlla subito e poi ogni 30 secondi
+    checkNearbyPois();
+    const interval = setInterval(checkNearbyPois, 30000);
+    return () => clearInterval(interval);
   }, [currentLocation.lat, currentLocation.lng, isVoiceMode, showPois, speak, currentLangCode, selectedCategories]);
-
   const showResultPanel = showResults && !!data;
 
   return (
@@ -1095,9 +1102,9 @@ const POI_CATEGORY_GROUPS = [
             )}
           </div>
 
-          <form
+<form
             onSubmit={handleSetDestination}
-            className="flex items-center gap-1 flex-1 max-w-lg min-w-[260px]"
+            className="flex items-center gap-1 min-w-0 w-32 sm:flex-1 sm:max-w-lg"
           >
             <div className="relative flex-1">
               <Navigation2 className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-primary" />
