@@ -1145,8 +1145,8 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* Street View full area */}
-      <div className="flex-1 relative">
+{/* Street View full area */}
+      <div className="flex-1 relative" style={{ contain: "strict" }}>
         <div ref={panoRef} className="absolute inset-0 bg-muted" />
 
         {/* Selected POI overlay (text uses mix-blend-mode so it stays readable on any background) */}
