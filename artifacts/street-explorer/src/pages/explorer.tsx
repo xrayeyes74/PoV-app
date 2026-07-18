@@ -955,7 +955,7 @@ useEffect(() => {
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
-                placeholder={t.explorer.search_placeholder}
+		placeholder="Cerca indirizzo"
                 className="pl-8 h-9 bg-card/50 border-white/10 text-xs"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
