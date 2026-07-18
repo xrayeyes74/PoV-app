@@ -956,7 +956,7 @@ useEffect(() => {
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 placeholder={t.explorer.search_placeholder}
-                className="pl-8 h-9 bg-card/50 border-white/10 text-sm"
+                className="pl-8 h-9 bg-card/50 border-white/10 text-xs"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -1020,7 +1020,15 @@ useEffect(() => {
                 variant={isVoiceMode ? "default" : "outline"}
                 size="sm"
                 className={`h-9 border-white/10 ${isVoiceMode ? "bg-primary text-primary-foreground" : "bg-card/30 hover:bg-card/80"}`}
-                onClick={toggleVoiceMode}
+                onClick={() => {
+                  toggleVoiceMode();
+                  if (!isVoiceMode) {
+                    // Unlock audio on mobile with a silent utterance
+                    const u = new SpeechSynthesisUtterance(" ");
+                    u.volume = 0;
+                    window.speechSynthesis.speak(u);
+                  }
+                }}
                 title={isVoiceMode ? "Disattiva modalità vocale" : "Attiva modalità vocale"}
               >
                 {isVoiceMode ? <Volume2 className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
@@ -1110,7 +1118,7 @@ useEffect(() => {
               <Navigation2 className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-primary" />
               <Input
                 placeholder={t.explorer.destination}
-                className="pl-7 pr-7 h-8 bg-card/40 border-white/10 text-[10px] placeholder:text-[10px]"
+                className="pl-7 pr-7 h-8 bg-card/40 border-white/10 text-[11px] placeholder:text-[11px]"
                 value={destinationQuery}
                 onChange={(e) => setDestinationQuery(e.target.value)}
               />
