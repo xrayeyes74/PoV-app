@@ -12,7 +12,6 @@ export type VoiceCommand =
 function parseCommand(transcript: string): VoiceCommand {
   const t = transcript.toLowerCase().trim();
 
-  // Navigazione / ricerca
   const searchPatterns = [
     /^(?:vai a|portami a|cerca|naviga verso|go to|take me to|search for|navigate to|aller à|llevar a|الذهاب إلى|前往)\s+(.+)$/i,
   ];
@@ -21,21 +20,17 @@ function parseCommand(transcript: string): VoiceCommand {
     if (match) return { type: "search", query: match[1] };
   }
 
-  // Analizza
   if (/\b(analizza|analyze|analyser|analizar|تحليل|分析)\b/.test(t))
     return { type: "analyze" };
 
-  // Mostra/nascondi POI
   if (/\b(mostra poi|show poi|afficher poi|mostrar poi|إظهار|显示)\b/.test(t))
     return { type: "show_poi" };
   if (/\b(nascondi poi|hide poi|masquer poi|ocultar poi|إخفاء|隐藏)\b/.test(t))
     return { type: "hide_poi" };
 
-  // Posizione
   if (/\b(posizione|my location|ma position|mi ubicación|موقعي|我的位置)\b/.test(t))
     return { type: "my_location" };
 
-  // Lingua
   const langMap: Record<string, string> = {
     italiano: "it", italian: "it",
     inglese: "en", english: "en",
@@ -55,7 +50,9 @@ export function useVoiceMode() {
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [lastTranscript, setLastTranscript] = useState("");
-  const [isSpeaking, setIsSpeaking] = useState(false);
+  // Use ref instead of state to avoid re-renders during speech (prevents Street View glitch)
+  const isSpeakingRef = useRef(false);
+  const isSpeaking = isSpeakingRef.current;
   const recognitionRef = useRef<any>(null);
   const onCommandRef = useRef<((cmd: VoiceCommand) => void) | null>(null);
 
@@ -70,8 +67,8 @@ export function useVoiceMode() {
     utterance.lang = lang;
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
+    utterance.onstart = () => { isSpeakingRef.current = true; };
+    utterance.onend = () => { isSpeakingRef.current = false; };
     window.speechSynthesis.speak(utterance);
   }, []);
 
