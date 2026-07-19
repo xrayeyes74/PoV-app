@@ -956,7 +956,7 @@ useEffect(() => {
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
 		placeholder="Cerca indirizzo"
-                className="pl-8 h-9 bg-card/50 border-white/10 text-xs"
+className="pl-6 h-9 bg-card/50 border-white/10 text-xs"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -1094,7 +1094,7 @@ useEffect(() => {
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               placeholder={t.explorer.filter_poi}
-              className="pl-8 pr-8 h-8 bg-card/40 border-white/10 text-xs"
+className="pl-6 pr-6 h-8 bg-card/40 border-white/10 text-xs"
               value={poiFilter}
               onChange={(e) => setPoiFilter(e.target.value)}
               disabled={!showPois}
@@ -1118,7 +1118,7 @@ useEffect(() => {
               <Navigation2 className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-primary" />
               <Input
                 placeholder={t.explorer.destination}
-                className="pl-7 pr-7 h-8 bg-card/40 border-white/10 text-[11px] placeholder:text-[11px]"
+className="pl-6 pr-2 h-8 bg-card/40 border-white/10 text-[9px] placeholder:text-[9px]"
                 value={destinationQuery}
                 onChange={(e) => setDestinationQuery(e.target.value)}
               />
