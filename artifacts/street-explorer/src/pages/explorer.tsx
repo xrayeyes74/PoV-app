@@ -15,6 +15,7 @@ import { LanguageSelector as LanguageSelectorInline } from "@/i18n";
 import { useUser, useClerk } from "@clerk/react";
 import { useVoiceMode } from "@/hooks/use-voice-mode";
 import { Mic, MicOff, Volume2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const DEFAULT_CENTER = { lat: 40.758896, lng: -73.985130 }; // Times Square
 
@@ -380,10 +381,10 @@ const POI_CATEGORY_GROUPS = [
           anchor: new window.google.maps.Point(8, 20),
         };
         // Much larger icon for the panorama, where markers shrink with perspective
-        const panoIcon = {
+const panoIcon = {
           url: iconSvg,
-          scaledSize: new window.google.maps.Size(168, 214),
-          anchor: new window.google.maps.Point(84, 214),
+          scaledSize: new window.google.maps.Size(52, 66),
+          anchor: new window.google.maps.Point(26, 66),
         };
         const ratingHtml = place.rating
           ? `<div style="font-size:11px;color:#fbbf24;">★ ${place.rating}</div>`
@@ -819,6 +820,33 @@ const POI_CATEGORY_GROUPS = [
       }
     });
   }, [setOnCommand, speak, handleAnalyze, handleUseMyLocation]);
+
+{/* Help button */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 w-9 border-white/10 bg-card/30 hover:bg-card/80 p-0"
+                >
+                  <span className="text-sm font-bold text-primary">?</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-sm">
+                <DialogHeader>
+                  <DialogTitle>Comandi vocali</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-2 text-sm">
+                  <p><span className="text-primary font-medium">"Vai a [posto]"</span> — naviga verso una destinazione</p>
+                  <p><span className="text-primary font-medium">"Analizza"</span> — analizza la scena con AI</p>
+                  <p><span className="text-primary font-medium">"Mostra POI"</span> — mostra i punti di interesse</p>
+                  <p><span className="text-primary font-medium">"Nascondi POI"</span> — nasconde i punti di interesse</p>
+                  <p><span className="text-primary font-medium">"Posizione"</span> — usa la tua posizione GPS</p>
+                  <p><span className="text-primary font-medium">"Italiano / Inglese / Francese..."</span> — cambia lingua</p>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">Tieni premuto il pulsante microfono e parla.</p>
+              </DialogContent>
+            </Dialog>
 
 // Nearby POI announcements for smart glasses
   const announcedPoisRef = useRef<Map<string, number>>(new Map());
