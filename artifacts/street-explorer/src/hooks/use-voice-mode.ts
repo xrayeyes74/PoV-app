@@ -134,44 +134,30 @@ export function useVoiceMode() {
         setIsListening(false);
       }
     } else {
-      // Web Speech API fallback
       const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (!SR) return;
       const recognition = new SR();
       recognition.lang = currentLang;
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
-recognition.onend = () => {
-        console.log("Speech recognition ended");
-        setIsListening(false);
-      };
-      recognition.onstart = () => {
-        console.log("Speech recognition started");
-        setIsListening(true);
-      };
-recognition.onerror = (event: any) => {
-        console.error("Speech recognition error:", event.error, event.message);
+      recognition.onstart = () => setIsListening(true);
+      recognition.onend = () => setIsListening(false);
+      recognition.onerror = (event: any) => {
+        console.error("Speech recognition error:", event.error);
         setIsListening(false);
       };
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
+        console.log("Transcript:", transcript);
         setLastTranscript(transcript);
         const command = parseCommand(transcript);
+        console.log("Command parsed:", command);
         onCommandRef.current?.(command);
       };
       recognitionRef.current = recognition;
       recognition.start();
     }
   }, [isNative]);
-
-recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        console.log("Transcript:", transcript);
-        setLastTranscript(transcript);
-        const command = parseCommand(transcript);
-        console.log("Command:", command);
-        onCommandRef.current?.(command);
-      };
 
   const stopListening = useCallback(async () => {
     if (isNative && SpeechRecognition) {
