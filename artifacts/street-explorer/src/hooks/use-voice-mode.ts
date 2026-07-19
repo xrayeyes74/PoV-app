@@ -141,8 +141,14 @@ export function useVoiceMode() {
       recognition.lang = currentLang;
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
-      recognition.onstart = () => setIsListening(true);
-      recognition.onend = () => setIsListening(false);
+recognition.onend = () => {
+        console.log("Speech recognition ended");
+        setIsListening(false);
+      };
+      recognition.onstart = () => {
+        console.log("Speech recognition started");
+        setIsListening(true);
+      };
 recognition.onerror = (event: any) => {
         console.error("Speech recognition error:", event.error, event.message);
         setIsListening(false);
