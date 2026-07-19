@@ -143,7 +143,10 @@ export function useVoiceMode() {
       recognition.maxAlternatives = 1;
       recognition.onstart = () => setIsListening(true);
       recognition.onend = () => setIsListening(false);
-      recognition.onerror = () => setIsListening(false);
+recognition.onerror = (event: any) => {
+        console.error("Speech recognition error:", event.error, event.message);
+        setIsListening(false);
+      };
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         setLastTranscript(transcript);
