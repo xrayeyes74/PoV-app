@@ -1094,7 +1094,7 @@ className="pl-6 h-9 bg-card/50 border-white/10 text-xs"
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               placeholder={t.explorer.filter_poi}
-className="pl-6 pr-6 h-8 bg-card/40 border-white/10 text-xs"
+className="pl-6 pr-6 h-8 bg-card/40 border-white/10 text-[9px]"
               value={poiFilter}
               onChange={(e) => setPoiFilter(e.target.value)}
               disabled={!showPois}
