@@ -164,6 +164,15 @@ recognition.onerror = (event: any) => {
     }
   }, [isNative]);
 
+recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        console.log("Transcript:", transcript);
+        setLastTranscript(transcript);
+        const command = parseCommand(transcript);
+        console.log("Command:", command);
+        onCommandRef.current?.(command);
+      };
+
   const stopListening = useCallback(async () => {
     if (isNative && SpeechRecognition) {
       try { await SpeechRecognition.stop(); } catch {}
