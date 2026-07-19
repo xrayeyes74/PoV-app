@@ -1183,6 +1183,37 @@ className="pl-6 pr-2 h-8 bg-card/40 border-white/10 text-[9px] placeholder:text-
         </div>
       </div>
 
+{/* Voice interaction panel */}
+      {isVoiceMode && (
+        <div className="flex-shrink-0 z-30 bg-primary/10 border-b border-primary/20 px-3 py-2 flex items-center gap-3">
+          <button
+            onClick={() => {
+              if (isListening) {
+                stopListening();
+              } else {
+                startListening(currentLangCode + "-" + currentLangCode.toUpperCase());
+              }
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm transition-all select-none
+              ${isListening
+                ? "bg-red-500 text-white scale-105 shadow-lg shadow-red-500/30 animate-pulse"
+                : "bg-primary text-primary-foreground hover:bg-primary/90"
+              }`}
+          >
+            {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            {isListening ? "Tocca per fermare" : "Tocca e parla"}
+          </button>
+          {lastTranscript && !isListening && (
+            <span className="text-muted-foreground text-sm italic truncate max-w-[300px]">
+              "{lastTranscript}"
+            </span>
+          )}
+          <div className="ml-auto text-xs text-muted-foreground hidden md:block">
+            Comandi: "vai a [posto]" · "analizza" · "mostra/nascondi POI" · "posizione"
+          </div>
+        </div>
+      )}
+
 {/* Street View full area */}
       <div className="flex-1 relative" style={{ contain: "strict" }}>
         <div ref={panoRef} className="absolute inset-0 bg-muted" />
