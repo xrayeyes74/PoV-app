@@ -802,7 +802,7 @@ const panoIcon = {
   // Voice mode command handler
   useEffect(() => {
     setOnCommand((cmd) => {
-	if (cmd.type === "search") {
+      if (cmd.type === "search") {
         if (cmd.query && cmd.query.trim().length > 0) {
           setSearchQuery(cmd.query.trim());
           setTimeout(() => {
