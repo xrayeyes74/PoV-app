@@ -64,6 +64,7 @@ const [showCategoryPanel, setShowCategoryPanel] = useState(false);
   const [isGeocodingDest, setIsGeocodingDest] = useState(false);
   const destLineRef = useRef<google.maps.Polyline | null>(null);
   const destMarkerRef = useRef<google.maps.Marker | null>(null);
+  const voiceSearchQueryRef = useRef<string | null>(null);
 
   // Selected POI overlay info (shown on the panorama)
   const [selectedPanoPlace, setSelectedPanoPlace] = useState<{
