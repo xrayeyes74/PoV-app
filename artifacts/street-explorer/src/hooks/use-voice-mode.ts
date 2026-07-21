@@ -1,18 +1,4 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Capacitor } from "@capacitor/core";
-
-// Lazy import dei plugin nativi solo su Android
-let TextToSpeech: any = null;
-let SpeechRecognition: any = null;
-
-if (Capacitor.isNativePlatform()) {
-  import("@capacitor-community/text-to-speech").then((m) => {
-    TextToSpeech = m.TextToSpeech;
-  });
-  import("@capacitor-community/speech-recognition").then((m) => {
-    SpeechRecognition = m.SpeechRecognition;
-  });
-}
 
 export type VoiceCommand =
   | { type: "search"; query: string }
@@ -68,143 +54,73 @@ export function useVoiceMode() {
   const isSpeaking = isSpeakingRef.current;
   const recognitionRef = useRef<any>(null);
   const onCommandRef = useRef<((cmd: VoiceCommand) => void) | null>(null);
-  const isNative = Capacitor.isNativePlatform();
 
-  const isSupported = isNative || (
+  const isSupported =
     typeof window !== "undefined" &&
-    ("SpeechRecognition" in window || "webkitSpeechRecognition" in window)
-  );
+    ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
 
-  const speak = useCallback(async (text: string, lang = "it-IT") => {
-    isSpeakingRef.current = true;
+  const speak = useCallback((text: string, lang = "it-IT") => {
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.onstart = () => { isSpeakingRef.current = true; };
+    utterance.onend = () => { isSpeakingRef.current = false; };
+    window.speechSynthesis.speak(utterance);
+  }, []);
+
+  const startListening = useCallback((currentLang = "it-IT") => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+
+    // Stop any existing recognition
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+    }
+
+    const recognition = new SR();
+    recognition.lang = currentLang;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.continuous = false;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = (event: any) => {
+      console.warn("Speech error:", event.error);
+      setIsListening(false);
+    };
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setLastTranscript(transcript);
+      const command = parseCommand(transcript);
+      onCommandRef.current?.(command);
+    };
+
+    recognitionRef.current = recognition;
     try {
-      if (isNative && TextToSpeech) {
-        await TextToSpeech.speak({
-          text,
-          lang,
-          rate: 1.0,
-          pitch: 1.0,
-          volume: 1.0,
-          category: "ambient",
-        });
-      } else {
-        if (!("speechSynthesis" in window)) return;
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = lang;
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
-        utterance.onend = () => { isSpeakingRef.current = false; };
-        window.speechSynthesis.speak(utterance);
-        return;
-      }
-    } catch (e) {
-      console.warn("TTS error:", e);
-    }
-    isSpeakingRef.current = false;
-  }, [isNative]);
-
-  const startListening = useCallback(async (currentLang = "it-IT") => {
-    if (isNative && SpeechRecognition) {
-      try {
-        const permission = await SpeechRecognition.requestPermissions();
-        if (permission.speechRecognition !== "granted") return;
-
-        setIsListening(true);
-        await SpeechRecognition.start({
-          language: currentLang,
-          maxResults: 1,
-          prompt: "Parla...",
-          partialResults: false,
-          popup: true,
-        });
-
-SpeechRecognition.addListener("listeningState", (data: any) => {
-          if (data.status === "stopped") {
-            setIsListening(false);
-          }
-        });
-
-SpeechRecognition.addListener("partialResults", (data: any) => {
-          const transcript = data.matches?.[0] ?? "";
-          if (transcript) {
-            setLastTranscript(transcript);
-            setIsListening(false);
-            const command = parseCommand(transcript);
-            console.log("Command:", JSON.stringify(command));
-            onCommandRef.current?.(command);
-          }
-        });
-
-        SpeechRecognition.addListener("results", (data: any) => {
-          const transcript = data.matches?.[0] ?? "";
-          if (transcript) {
-            setLastTranscript(transcript);
-            setIsListening(false);
-            const command = parseCommand(transcript);
-            console.log("Command:", JSON.stringify(command));
-            onCommandRef.current?.(command);
-          }
-        });
-
-        // Fallback: stop dopo 10 secondi
-        setTimeout(() => {
-          if (SpeechRecognition) {
-            SpeechRecognition.stop().catch(() => {});
-            setIsListening(false);
-          }
-        }, 10000);
-      } catch (e) {
-        console.warn("STT error:", e);
-        setIsListening(false);
-      }
-    } else {
-      const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (!SR) return;
-      const recognition = new SR();
-      recognition.lang = currentLang;
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-      recognition.onstart = () => setIsListening(true);
-      recognition.onend = () => setIsListening(false);
-      recognition.onerror = (event: any) => {
-        console.error("Speech recognition error:", event.error);
-        setIsListening(false);
-      };
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        console.log("Transcript:", transcript);
-        setLastTranscript(transcript);
-        const command = parseCommand(transcript);
-        console.log("Command parsed:", command);
-        onCommandRef.current?.(command);
-      };
-      recognitionRef.current = recognition;
       recognition.start();
+    } catch (e) {
+      console.warn("Recognition start error:", e);
+      setIsListening(false);
     }
-  }, [isNative]);
+  }, []);
 
-const stopListening = useCallback(async () => {
-    if (isNative && SpeechRecognition) {
-      try { 
-        await SpeechRecognition.stop();
-        await SpeechRecognition.removeAllListeners();
-      } catch {}
-    } else {
-      recognitionRef.current?.stop();
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
     }
     setIsListening(false);
-  }, [isNative]);
+  }, []);
 
   const toggleVoiceMode = useCallback(() => {
     setIsVoiceMode((v) => {
-      if (v) {
-        if (isNative && TextToSpeech) TextToSpeech.stop();
-        else window.speechSynthesis?.cancel();
-      }
+      if (v) window.speechSynthesis?.cancel();
       return !v;
     });
-  }, [isNative]);
+  }, []);
 
   const setOnCommand = useCallback((fn: (cmd: VoiceCommand) => void) => {
     onCommandRef.current = fn;
@@ -212,12 +128,12 @@ const stopListening = useCallback(async () => {
 
   useEffect(() => {
     return () => {
-      if (isNative && SpeechRecognition) SpeechRecognition.stop().catch(() => {});
-      else recognitionRef.current?.stop();
-      if (isNative && TextToSpeech) TextToSpeech.stop().catch(() => {});
-      else window.speechSynthesis?.cancel();
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch {}
+      }
+      window.speechSynthesis?.cancel();
     };
-  }, [isNative]);
+  }, []);
 
   return {
     isVoiceMode,
