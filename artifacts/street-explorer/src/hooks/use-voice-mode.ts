@@ -119,6 +119,12 @@ export function useVoiceMode() {
           popup: false,
         });
 
+SpeechRecognition.addListener("listeningState", (data: any) => {
+          if (data.status === "stopped") {
+            setIsListening(false);
+          }
+        });
+
         SpeechRecognition.addListener("partialResults", (data: any) => {
           const transcript = data.matches?.[0] ?? "";
           if (transcript) {
@@ -129,6 +135,14 @@ export function useVoiceMode() {
             SpeechRecognition.stop();
           }
         });
+
+        // Fallback: stop dopo 10 secondi
+        setTimeout(() => {
+          if (SpeechRecognition) {
+            SpeechRecognition.stop().catch(() => {});
+            setIsListening(false);
+          }
+        }, 10000);
       } catch (e) {
         console.warn("STT error:", e);
         setIsListening(false);
