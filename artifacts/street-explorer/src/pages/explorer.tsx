@@ -802,8 +802,9 @@ const panoIcon = {
   // Voice mode command handler
   useEffect(() => {
     setOnCommand((cmd) => {
-      if (cmd.type === "search") {
+	if (cmd.type === "search") {
         setSearchQuery(cmd.query);
+        setActiveAddress(cmd.query);
         speak(`Cerco ${cmd.query}`, currentLangCode);
       } else if (cmd.type === "analyze") {
         handleAnalyze();
