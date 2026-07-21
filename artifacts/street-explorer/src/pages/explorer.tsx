@@ -809,7 +809,6 @@ const panoIcon = {
             setActiveAddress(cmd.query.trim());
           }, 500);
         }
-        }
       } else if (cmd.type === "analyze") {
         handleAnalyze();
         speak("Analisi in corso", currentLangCode);
