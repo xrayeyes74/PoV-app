@@ -49,7 +49,7 @@ const [showCategoryPanel, setShowCategoryPanel] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [poiCount, setPoiCount] = useState(0);
   const [showResults, setShowResults] = useState(true);
-  
+  const pendingVoiceCommandRef = useRef<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeAddress, setActiveAddress] = useState("");
 
@@ -802,12 +802,9 @@ const panoIcon = {
   // Voice mode command handler
   useEffect(() => {
     setOnCommand((cmd) => {
-      if (cmd.type === "search") {
+if (cmd.type === "search") {
         if (cmd.query && cmd.query.trim().length > 0) {
-          setSearchQuery(cmd.query.trim());
-          setTimeout(() => {
-            setActiveAddress(cmd.query.trim());
-          }, 500);
+          pendingVoiceCommandRef.current = cmd.query.trim();
         }
       } else if (cmd.type === "analyze") {
         handleAnalyze();
@@ -867,6 +864,15 @@ useEffect(() => {
         }, i * 3000);
       });
     };
+
+useEffect(() => {
+    if (pendingVoiceCommandRef.current) {
+      const query = pendingVoiceCommandRef.current;
+      pendingVoiceCommandRef.current = null;
+      setSearchQuery(query);
+      setActiveAddress(query);
+    }
+  }, [lastTranscript]);
 
     // Controlla subito e poi ogni 30 secondi
     checkNearbyPois();
