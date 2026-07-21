@@ -804,9 +804,11 @@ const panoIcon = {
     setOnCommand((cmd) => {
 	if (cmd.type === "search") {
         if (cmd.query && cmd.query.trim().length > 0) {
-          setSearchQuery(cmd.query);
-          setActiveAddress(cmd.query.trim());
+          setSearchQuery(cmd.query.trim());
           speak(`Cerco ${cmd.query}`, currentLangCode);
+          setTimeout(() => {
+            setActiveAddress(cmd.query.trim());
+          }, 500);
         }
       } else if (cmd.type === "analyze") {
         handleAnalyze();
