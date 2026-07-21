@@ -1203,8 +1203,8 @@ className="pl-6 pr-2 h-8 bg-card/40 border-white/10 text-[9px] placeholder:text-
             {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
             {isListening ? "Tocca per fermare" : "Tocca e parla"}
           </button>
-          {lastTranscript && !isListening && (
-            <span className="text-muted-foreground text-sm italic truncate max-w-[300px]">
+{lastTranscript && (
+            <span className="text-white text-sm font-medium bg-black/50 px-2 py-1 rounded">
               "{lastTranscript}"
             </span>
           )}

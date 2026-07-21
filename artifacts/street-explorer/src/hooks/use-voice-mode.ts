@@ -131,6 +131,7 @@ SpeechRecognition.addListener("partialResults", (data: any) => {
             setLastTranscript(transcript);
             setIsListening(false);
             const command = parseCommand(transcript);
+            console.log("Command:", JSON.stringify(command));
             onCommandRef.current?.(command);
           }
         });
@@ -141,6 +142,7 @@ SpeechRecognition.addListener("partialResults", (data: any) => {
             setLastTranscript(transcript);
             setIsListening(false);
             const command = parseCommand(transcript);
+            console.log("Command:", JSON.stringify(command));
             onCommandRef.current?.(command);
           }
         });
@@ -182,9 +184,12 @@ SpeechRecognition.addListener("partialResults", (data: any) => {
     }
   }, [isNative]);
 
-  const stopListening = useCallback(async () => {
+const stopListening = useCallback(async () => {
     if (isNative && SpeechRecognition) {
-      try { await SpeechRecognition.stop(); } catch {}
+      try { 
+        await SpeechRecognition.stop();
+        await SpeechRecognition.removeAllListeners();
+      } catch {}
     } else {
       recognitionRef.current?.stop();
     }
