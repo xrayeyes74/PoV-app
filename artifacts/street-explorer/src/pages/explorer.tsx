@@ -49,7 +49,6 @@ const [showCategoryPanel, setShowCategoryPanel] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [poiCount, setPoiCount] = useState(0);
   const [showResults, setShowResults] = useState(true);
-  const pendingVoiceCommandRef = useRef<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeAddress, setActiveAddress] = useState("");
 
@@ -802,9 +801,10 @@ const panoIcon = {
   // Voice mode command handler
   useEffect(() => {
     setOnCommand((cmd) => {
-if (cmd.type === "search") {
+      if (cmd.type === "search") {
         if (cmd.query && cmd.query.trim().length > 0) {
-          pendingVoiceCommandRef.current = cmd.query.trim();
+          setSearchQuery(cmd.query.trim());
+          setActiveAddress(cmd.query.trim());
         }
       } else if (cmd.type === "analyze") {
         handleAnalyze();
@@ -866,13 +866,40 @@ useEffect(() => {
     };
 
 useEffect(() => {
-    if (pendingVoiceCommandRef.current) {
-      const query = pendingVoiceCommandRef.current;
-      pendingVoiceCommandRef.current = null;
-      setSearchQuery(query);
-      setActiveAddress(query);
-    }
-  }, [lastTranscript]);
+  // Nearby POI announcements
+  useEffect(() => {
+    if (!isVoiceMode || !showPois) return;
+
+    const checkNearbyPois = () => {
+      const now = Date.now();
+      const nearbyPois = lastPoiResultsRef.current.filter((place) => {
+        if (!place.geometry?.location || !place.name) return false;
+        const dist = computeDistance(currentLocation, {
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+        });
+        if (dist > 100) return false;
+        if (selectedCategories.length > 0 && !selectedCategories.some((cat) => (place.types ?? []).includes(cat))) return false;
+        const lastAnnounced = announcedPoisRef.current.get(place.place_id ?? place.name ?? "");
+        if (lastAnnounced && now - lastAnnounced < 5 * 60 * 1000) return false;
+        return true;
+      });
+      if (nearbyPois.length === 0) return;
+      const toAnnounce = nearbyPois.slice(0, 2);
+      const langCode = currentLangCode + "-" + currentLangCode.toUpperCase();
+      toAnnounce.forEach((place, i) => {
+        const key = place.place_id ?? place.name ?? "";
+        announcedPoisRef.current.set(key, now);
+        const type = friendlyType(place.types);
+        const dist = Math.round(computeDistance(currentLocation, {
+          lat: place.geometry!.location!.lat(),
+          lng: place.geometry!.location!.lng(),
+        }));
+        setTimeout(() => {
+          speak(\`\${type}: \${place.name}, a \${dist} metri\`, langCode);
+        }, i * 3000);
+      });
+    };
 
     // Controlla subito e poi ogni 30 secondi
     checkNearbyPois();
