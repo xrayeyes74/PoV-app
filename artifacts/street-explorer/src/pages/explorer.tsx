@@ -1523,5 +1523,5 @@ className="pl-6 pr-2 h-8 bg-card/40 border-white/10 text-[9px] placeholder:text-
   );
 }
 )
-}
+)
 
