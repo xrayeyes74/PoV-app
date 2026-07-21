@@ -802,23 +802,21 @@ const panoIcon = {
   // Voice mode command handler
   useEffect(() => {
     setOnCommand((cmd) => {
-      if (cmd.type === "search") {
+	if (cmd.type === "search") {
         if (cmd.query && cmd.query.trim().length > 0) {
-          setSearchQuery(cmd.query.trim());
-          setActiveAddress(cmd.query.trim());
+          setTimeout(() => {
+            setSearchQuery(cmd.query.trim());
+            setActiveAddress(cmd.query.trim());
+          }, 0);
         }
-      } else if (cmd.type === "analyze") {
-        handleAnalyze();
-        speak("Analisi in corso", currentLangCode);
+	} else if (cmd.type === "analyze") {
+        setTimeout(() => handleAnalyze(), 0);
       } else if (cmd.type === "show_poi") {
-        setShowPois(true);
-        speak("POI mostrati", currentLangCode);
+        setTimeout(() => setShowPois(true), 0);
       } else if (cmd.type === "hide_poi") {
-        setShowPois(false);
-        speak("POI nascosti", currentLangCode);
+        setTimeout(() => setShowPois(false), 0);
       } else if (cmd.type === "my_location") {
-        handleUseMyLocation();
-        speak("Uso la tua posizione", currentLangCode);
+        setTimeout(() => handleUseMyLocation(), 0);
       }
     });
   }, [setOnCommand, speak, handleAnalyze, handleUseMyLocation]);
@@ -865,6 +863,13 @@ const panoIcon = {
     const interval = setInterval(checkNearbyPois, 30000);
     return () => clearInterval(interval);
   }, [currentLocation.lat, currentLocation.lng, isVoiceMode, showPois, speak, currentLangCode, selectedCategories]);
+useEffect(() => {
+    if (voiceSearchQueryRef.current) {
+      const q = voiceSearchQueryRef.current;
+      voiceSearchQueryRef.current = null;
+      setActiveAddress(q);
+    }
+  });
   const showResultPanel = showResults && !!data;
 
   return (
