@@ -896,7 +896,7 @@ useEffect(() => {
           lng: place.geometry!.location!.lng(),
         }));
         setTimeout(() => {
-          speak(\`\${type}: \${place.name}, a \${dist} metri\`, langCode);
+          speak(`${type}: ${place.name}, a ${dist} metri`, langCode);
         }, i * 3000);
       });
     };
