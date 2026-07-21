@@ -803,9 +803,11 @@ const panoIcon = {
   useEffect(() => {
     setOnCommand((cmd) => {
 	if (cmd.type === "search") {
-        setSearchQuery(cmd.query);
-        setActiveAddress(cmd.query);
-        speak(`Cerco ${cmd.query}`, currentLangCode);
+        if (cmd.query && cmd.query.trim().length > 0) {
+          setSearchQuery(cmd.query);
+          setActiveAddress(cmd.query.trim());
+          speak(`Cerco ${cmd.query}`, currentLangCode);
+        }
       } else if (cmd.type === "analyze") {
         handleAnalyze();
         speak("Analisi in corso", currentLangCode);
