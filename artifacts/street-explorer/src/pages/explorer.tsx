@@ -819,8 +819,9 @@ useEffect(() => {
         } else if (cmd.type === "my_location") {
           setTimeout(() => handleUseMyLocation(), 0);
         }
-      } catch(e) {
-        console.error("Voice command error:", e);
+} catch(e) {
+        const el = document.getElementById('voice-error');
+        if (el) el.textContent = String(e);
       }
     });
   }, [setOnCommand, speak, handleAnalyze, handleUseMyLocation]);
@@ -1213,6 +1214,7 @@ className="pl-6 pr-2 h-8 bg-card/40 border-white/10 text-[9px] placeholder:text-
               "{lastTranscript}"
             </span>
           )}
+<span id="voice-error" className="text-red-400 text-xs"></span>
           <div className="ml-auto text-xs text-muted-foreground hidden md:block">
             Comandi: "vai a [posto]" · "analizza" · "mostra/nascondi POI" · "posizione"
           </div>
