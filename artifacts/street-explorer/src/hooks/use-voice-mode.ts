@@ -125,14 +125,23 @@ SpeechRecognition.addListener("listeningState", (data: any) => {
           }
         });
 
-        SpeechRecognition.addListener("partialResults", (data: any) => {
+SpeechRecognition.addListener("partialResults", (data: any) => {
           const transcript = data.matches?.[0] ?? "";
           if (transcript) {
             setLastTranscript(transcript);
             setIsListening(false);
             const command = parseCommand(transcript);
             onCommandRef.current?.(command);
-            SpeechRecognition.stop();
+          }
+        });
+
+        SpeechRecognition.addListener("results", (data: any) => {
+          const transcript = data.matches?.[0] ?? "";
+          if (transcript) {
+            setLastTranscript(transcript);
+            setIsListening(false);
+            const command = parseCommand(transcript);
+            onCommandRef.current?.(command);
           }
         });
 
