@@ -116,7 +116,7 @@ export function useVoiceMode() {
           maxResults: 1,
           prompt: "Parla...",
           partialResults: false,
-          popup: false,
+          popup: true,
         });
 
 SpeechRecognition.addListener("listeningState", (data: any) => {
