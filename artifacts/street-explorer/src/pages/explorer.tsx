@@ -800,23 +800,27 @@ const panoIcon = {
   }, [data, isVoiceMode, speak, currentLangCode]);
 
   // Voice mode command handler
-  useEffect(() => {
+useEffect(() => {
     setOnCommand((cmd) => {
-	if (cmd.type === "search") {
-        if (cmd.query && cmd.query.trim().length > 0) {
-          setTimeout(() => {
-            setSearchQuery(cmd.query.trim());
-            setActiveAddress(cmd.query.trim());
-          }, 0);
+      try {
+        if (cmd.type === "search") {
+          if (cmd.query && cmd.query.trim().length > 0) {
+            setTimeout(() => {
+              setSearchQuery(cmd.query.trim());
+              setActiveAddress(cmd.query.trim());
+            }, 0);
+          }
+        } else if (cmd.type === "analyze") {
+          setTimeout(() => handleAnalyze(), 0);
+        } else if (cmd.type === "show_poi") {
+          setTimeout(() => setShowPois(true), 0);
+        } else if (cmd.type === "hide_poi") {
+          setTimeout(() => setShowPois(false), 0);
+        } else if (cmd.type === "my_location") {
+          setTimeout(() => handleUseMyLocation(), 0);
         }
-	} else if (cmd.type === "analyze") {
-        setTimeout(() => handleAnalyze(), 0);
-      } else if (cmd.type === "show_poi") {
-        setTimeout(() => setShowPois(true), 0);
-      } else if (cmd.type === "hide_poi") {
-        setTimeout(() => setShowPois(false), 0);
-      } else if (cmd.type === "my_location") {
-        setTimeout(() => handleUseMyLocation(), 0);
+      } catch(e) {
+        console.error("Voice command error:", e);
       }
     });
   }, [setOnCommand, speak, handleAnalyze, handleUseMyLocation]);
