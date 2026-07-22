@@ -710,8 +710,10 @@ const panoIcon = {
     }
 
 const handleVoiceSearch = useCallback((query: string) => {
+handleVoiceSearchRef.current = handleVoiceSearch;
     const mapInst = mapInstanceRef.current;
     const panoInst = panoramaInstanceRef.current;
+	const handleVoiceSearchRef = useRef<((query: string) => void) | null>(null);
     const el = document.getElementById('voice-error');
     if (el) el.textContent = `map:${!!mapInst} pano:${!!panoInst} google:${!!window.google?.maps}`;
     if (!window.google?.maps || !mapInst || !panoInst) return;
@@ -831,7 +833,7 @@ useEffect(() => {
       try {
 if (cmd.type === "search") {
         if (cmd.query && cmd.query.trim().length > 0) {
-          setTimeout(() => handleVoiceSearch(cmd.query.trim()), 0);
+          setTimeout(() => handleVoiceSearchRef.current?.(cmd.query.trim()), 0);
         }
         } else if (cmd.type === "analyze") {
           setTimeout(() => handleAnalyze(), 0);
