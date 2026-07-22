@@ -803,13 +803,13 @@ const panoIcon = {
 useEffect(() => {
     setOnCommand((cmd) => {
       try {
-        if (cmd.type === "search") {
-          if (cmd.query && cmd.query.trim().length > 0) {
-            setTimeout(() => {
-              setSearchQuery(cmd.query.trim());
-              setActiveAddress(cmd.query.trim());
-            }, 0);
-          }
+	if (cmd.type === "search") {
+        if (cmd.query && cmd.query.trim().length > 0) {
+          setTimeout(() => {
+            setSearchQuery(cmd.query.trim());
+            // setActiveAddress temporaneamente disabilitato
+          }, 0);
+        }
         } else if (cmd.type === "analyze") {
           setTimeout(() => handleAnalyze(), 0);
         } else if (cmd.type === "show_poi") {
