@@ -712,16 +712,19 @@ const panoIcon = {
 const handleVoiceSearch = useCallback((query: string) => {
     const mapInst = mapInstanceRef.current;
     const panoInst = panoramaInstanceRef.current;
-    const markerInst = markerInstanceRef.current;
+    const el = document.getElementById('voice-error');
+    if (el) el.textContent = `map:${!!mapInst} pano:${!!panoInst} google:${!!window.google?.maps}`;
     if (!window.google?.maps || !mapInst || !panoInst) return;
+    if (el) el.textContent = 'geocoding: ' + query;
     const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ address: query }, (results, status) => {
+      if (el) el.textContent = `status: ${status} results: ${results?.length}`;
       if (status !== "OK" || !results || results.length === 0) return;
       const loc = results[0].geometry.location;
       const pos = { lat: loc.lat(), lng: loc.lng() };
       mapInst.setCenter(pos);
       panoInst.setPosition(pos);
-      if (markerInst) markerInst.setPosition(pos);
+      if (markerInstanceRef.current) markerInstanceRef.current.setPosition(pos);
       setCurrentLocation(pos);
       setSearchQuery(query);
     });
