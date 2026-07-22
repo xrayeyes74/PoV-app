@@ -704,6 +704,21 @@ const panoIcon = {
       return;
     }
 
+const handleVoiceSearch = useCallback((query: string) => {
+    if (!window.google?.maps || !map || !panorama) return;
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode({ address: query }, (results, status) => {
+      if (status !== "OK" || !results || results.length === 0) return;
+      const loc = results[0].geometry.location;
+      const pos = { lat: loc.lat(), lng: loc.lng() };
+      map.setCenter(pos);
+      panorama.setPosition(pos);
+      if (marker) marker.setPosition(pos);
+      setCurrentLocation(pos);
+      setSearchQuery(query);
+    });
+  }, [map, panorama, marker]);
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const pos = {
@@ -803,12 +818,9 @@ const panoIcon = {
 useEffect(() => {
     setOnCommand((cmd) => {
       try {
-	if (cmd.type === "search") {
+if (cmd.type === "search") {
         if (cmd.query && cmd.query.trim().length > 0) {
-          setTimeout(() => {
-            setSearchQuery(cmd.query.trim());
-            // setActiveAddress temporaneamente disabilitato
-          }, 0);
+          setTimeout(() => handleVoiceSearch(cmd.query.trim()), 0);
         }
         } else if (cmd.type === "analyze") {
           setTimeout(() => handleAnalyze(), 0);
