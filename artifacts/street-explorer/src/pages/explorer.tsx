@@ -726,7 +726,6 @@ const handleVoiceSearch = useCallback((query: string) => {
       setSearchQuery(query);
     });
   }, []);
-  }, [map, panorama, marker]);
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
