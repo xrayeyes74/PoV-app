@@ -1232,11 +1232,10 @@ className="pl-6 pr-2 h-8 bg-card/40 border-white/10 text-[9px] placeholder:text-
             {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
             {isListening ? "Tocca per fermare" : "Tocca e parla"}
           </button>
-{lastTranscript && (
-            <span className="text-white text-sm font-medium bg-black/50 px-2 py-1 rounded">
-              "{lastTranscript}"
-            </span>
-          )}
+<span className="text-white text-sm font-medium bg-black/50 px-2 py-1 rounded flex-1">
+            {lastTranscript ? `"${lastTranscript}"` : "in attesa..."}
+            <span id="voice-error" className="text-red-400 ml-2"></span>
+          </span>
 <span id="voice-error" className="text-red-400 text-xs"></span>
           <div className="ml-auto text-xs text-muted-foreground hidden md:block">
             Comandi: "vai a [posto]" · "analizza" · "mostra/nascondi POI" · "posizione"
