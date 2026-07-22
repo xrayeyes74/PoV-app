@@ -33,7 +33,9 @@ export default function Explorer() {
   
   const mapRef = useRef<HTMLDivElement>(null);
   const panoRef = useRef<HTMLDivElement>(null);
-  
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const panoramaInstanceRef = useRef<google.maps.StreetViewPanorama | null>(null);
+  const markerInstanceRef = useRef<google.maps.Marker | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [panorama, setPanorama] = useState<google.maps.StreetViewPanorama | null>(null);
   const [marker, setMarker] = useState<google.maps.Marker | null>(null);
@@ -249,9 +251,12 @@ const [showCategoryPanel, setShowCategoryPanel] = useState(false);
     poiInfoWindowRef.current = new window.google.maps.InfoWindow();
     poiPanoInfoWindowRef.current = new window.google.maps.InfoWindow();
 
-    setMap(newMap);
+	setMap(newMap);
     setPanorama(newPanorama);
     setMarker(newMarker);
+    mapInstanceRef.current = newMap;
+    panoramaInstanceRef.current = newPanorama;
+    markerInstanceRef.current = newMarker;
     
   }, [isLoaded]);
 
@@ -705,18 +710,22 @@ const panoIcon = {
     }
 
 const handleVoiceSearch = useCallback((query: string) => {
-    if (!window.google?.maps || !map || !panorama) return;
+    const mapInst = mapInstanceRef.current;
+    const panoInst = panoramaInstanceRef.current;
+    const markerInst = markerInstanceRef.current;
+    if (!window.google?.maps || !mapInst || !panoInst) return;
     const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ address: query }, (results, status) => {
       if (status !== "OK" || !results || results.length === 0) return;
       const loc = results[0].geometry.location;
       const pos = { lat: loc.lat(), lng: loc.lng() };
-      map.setCenter(pos);
-      panorama.setPosition(pos);
-      if (marker) marker.setPosition(pos);
+      mapInst.setCenter(pos);
+      panoInst.setPosition(pos);
+      if (markerInst) markerInst.setPosition(pos);
       setCurrentLocation(pos);
       setSearchQuery(query);
     });
+  }, []);
   }, [map, panorama, marker]);
 
     navigator.geolocation.getCurrentPosition(
