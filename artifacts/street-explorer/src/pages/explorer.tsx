@@ -833,6 +833,8 @@ useEffect(() => {
       try {
 if (cmd.type === "search") {
         if (cmd.query && cmd.query.trim().length > 0) {
+          const el = document.getElementById('voice-error');
+          if (el) el.textContent = `search: ${cmd.query} ref:${!!handleVoiceSearchRef.current}`;
           setTimeout(() => handleVoiceSearchRef.current?.(cmd.query.trim()), 0);
         }
         } else if (cmd.type === "analyze") {
